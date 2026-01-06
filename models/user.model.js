@@ -1,10 +1,28 @@
-class UserModel {
-    constructor(id, username, password,phone) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.phone = phone;
-    }
-}
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-module.exports = UserModel;
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  username: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+}, {
+  tableName: 'users',
+  timestamps: false,
+});
+
+module.exports = User;

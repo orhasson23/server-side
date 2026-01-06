@@ -1,8 +1,20 @@
-class PermissionModel {
-    constructor(id, name) {
-        this.id = id;
-        this.name = name;
-    }
-}
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-module.exports = PermissionModel;
+const Permission = sequelize.define('Permission', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+}, {
+  tableName: 'permissions',
+  timestamps: false,
+});
+
+module.exports = Permission;

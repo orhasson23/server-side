@@ -1,15 +1,9 @@
-const db = require('../middleware/mysqldb');
-const PermissionModel = require('../models/permission.model');
+const Permission = require('../models/permission.model');
 
 exports.getAllPermissions = async (req, res) => {
     try {
-        let permissionRows = [];
-        const rows = await db.getPermissions();
-        rows.forEach(row => {
-            const permission = new PermissionModel(row.id, row.name);
-            permissionRows.push(permission);
-        });
-        res.json(permissionRows);
+        const permissions = await Permission.findAll();
+        res.json(permissions);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -18,9 +12,8 @@ exports.getAllPermissions = async (req, res) => {
 exports.getPermissionById = async (req, res) => {
     try {
         const id = req.params.id;
-        const row = await db.getPermission(id);
-        if (row) {
-            const permission = new PermissionModel(row.id, row.name);
+        const permission = await Permission.findByPk(id);
+        if (permission) {
             res.json(permission);
         } else {
             res.status(404).json({ message: 'Permission not found' });
@@ -33,8 +26,8 @@ exports.getPermissionById = async (req, res) => {
 exports.createPermission = async (req, res) => {
     try {
         const { name } = req.body;
-        const id = await db.insertPermission({ name });
-        res.status(201).json({ id, name });
+        const permission = await Permission.create({ name });
+        res.status(201).json(permission);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -44,8 +37,12 @@ exports.updatePermission = async (req, res) => {
     try {
         const id = req.params.id;
         const { name } = req.body;
-        await db.updatePermission(id, { name });
-        res.json({ message: 'Permission updated' });
+        const [updated] = await Permission.update({ name }, { where: { id } });
+        if (updated) {
+            res.json({ message: 'Permission updated' });
+        } else {
+            res.status(404).json({ message: 'Permission not found' });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -54,8 +51,12 @@ exports.updatePermission = async (req, res) => {
 exports.deletePermission = async (req, res) => {
     try {
         const id = req.params.id;
-        await db.deletePermission(id);
-        res.json({ message: 'Permission deleted' });
+        const deleted = await Permission.destroy({ where: { id } });
+        if (deleted) {
+            res.json({ message: 'Permission deleted' });
+        } else {
+            res.status(404).json({ message: 'Permission not found' });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

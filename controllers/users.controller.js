@@ -1,15 +1,9 @@
-const db = require('../middleware/mysqldb');
-const UserModel = require('../models/user.model');
+const User = require('../models/user.model');
 
 exports.getAllUsers = async (req, res) => {
     try {
-        let userRows = [];
-        const rows = await db.getUsers();
-        rows.forEach(row => {
-            const user = new UserModel(row.id, row.username, row.password, row.phone);
-            userRows.push(user);
-        });
-        res.json(userRows);
+        const users = await User.findAll();
+        res.json(users);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -18,9 +12,8 @@ exports.getAllUsers = async (req, res) => {
 exports.getUserById = async (req, res) => {
     try {
         const id = req.params.id;
-        const row = await db.getUser(id);
-        if (row) {
-            const user = new UserModel(row.id, row.username, row.password, row.phone);
+        const user = await User.findByPk(id);
+        if (user) {
             res.json(user);
         } else {
             res.status(404).json({ message: 'User not found' });
@@ -33,8 +26,8 @@ exports.getUserById = async (req, res) => {
 exports.createUser = async (req, res) => {
     try {
         const { username, password, phone } = req.body;
-        const id = await db.insertUser({ username, password, phone });
-        res.status(201).json({ id, username, password, phone });
+        const user = await User.create({ username, password, phone });
+        res.status(201).json(user);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -44,8 +37,12 @@ exports.updateUser = async (req, res) => {
     try {
         const id = req.params.id;
         const { username, password, phone } = req.body;
-        await db.updateUser(id, { username, password, phone });
-        res.json({ message: 'User updated' });
+        const [updated] = await User.update({ username, password, phone }, { where: { id } });
+        if (updated) {
+            res.json({ message: 'User updated' });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -54,8 +51,12 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
     try {
         const id = req.params.id;
-        await db.deleteUser(id);
-        res.json({ message: 'User deleted' });
+        const deleted = await User.destroy({ where: { id } });
+        if (deleted) {
+            res.json({ message: 'User deleted' });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
